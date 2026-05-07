@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrueAnon - Lekan's Real Inbox</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        textarea { width: 90%; height: 100px; border-radius: 8px; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        button { background: #1a73e8; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
+        .inbox { margin-top: 30px; text-align: left; }
+        .message { background: #e7f3ff; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #1a73e8; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>TrueAnon</h2>
+    <p>Send a real anonymous message to Lekan.</p>
+    <textarea id="msgInput" placeholder="Write something here..."></textarea>
+    <button id="sendBtn">Send Message</button>
+
+    <div class="inbox">
+        <h3>Your Real Inbox</h3>
+        <div id="messageList">
+            <p style="color: gray;">Waiting for real messages...</p>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+  // These imports connect your app to the Firebase "Radio Tower"
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // YOUR SPECIFIC KEYS (From your screenshot)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCcN_uPGGJRLrFSUnp7Yszmh17_7NgFlfY",
+    authDomain: "true-anon.firebaseapp.com",
+    projectId: "true-anon",
+    storageBucket: "true-anon.firebasestorage.app",
+    messagingSenderId: "412357980631",
+    appId: "1:412357980631:web:63ad0149a86189cb579b9d"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const msgCol = collection(db, "messages");
+
+  // SEND LOGIC: Pushes text to the 'messages' folder you just created
+  document.getElementById('sendBtn').onclick = async () => {
+    const text = document.getElementById('msgInput').value;
+    if(text.trim() !== "") {
+        await addDoc(msgCol, { text: text, timestamp: new Date() });
+        document.getElementById('msgInput').value = "";
+        alert("Success! Message sent to the database.");
+    }
+  };
+
+  // RECEIVE LOGIC: Pulls real data from Paris (europe-west9) to your screen
+  const q = query(msgCol, orderBy("timestamp", "desc"));
+  onSnapshot(q, (snapshot) => {
+    const list = document.getElementById('messageList');
+    list.innerHTML = ""; 
+    snapshot.forEach(doc => {
+        const div = document.createElement('div');
+        div.className = "message";
+        div.innerText = doc.data().text;
+        list.appendChild(div);
+    });
+  });
+</script>
+
+</body>
+</html>
+
